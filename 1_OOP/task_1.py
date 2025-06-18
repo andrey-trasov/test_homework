@@ -24,9 +24,8 @@ class BankAccount:
         """получить текущий баланс"""
         return self.__balance
 
-
-a = BankAccount(100)
-print(a.deposit(100))
-print(a.withdraw(100))
-print(a.withdraw(10000))
-print(a.get_balance())
+account = BankAccount(100)
+print(account.deposit(100))
+print(account.withdraw(100))
+print(account.withdraw(1000))
+print(account.get_balance())
