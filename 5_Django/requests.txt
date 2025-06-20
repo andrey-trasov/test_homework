@@ -114,56 +114,94 @@ Book.objects.annotate(quarter=ExtractQuarter('published_date')).filter(quarter=2
 <QuerySet [{'id': 4, 'book_id': 1, 'rating': 4, 'comment': None, 'created_at': datetime.datetime(2021, 11, 9, 21, 0, tzinfo=datetime.timezone.utc)}]>
 
 Найди отзывы, сделанные ровно в 15:30.
-
+specific_time = make_aware(datetime(2024, 1, 1, 15, 30))
+Review.objects.filter(created_at__hour=15, created_at__minute=30)
+<QuerySet [{'id': 2, 'book_id': 3, 'rating': 4, 'comment': 'отлично\n', 'created_at': datetime.datetime(2021, 11, 11, 15, 30, tzinfo=datetime.timezone.utc), 'day': 10}
 
 Найди отзывы, сделанные в 15 часов.
-
+Review.objects.filter(created_at__hour=15)
+<QuerySet [{'id': 2, 'book_id': 3, 'rating': 4, 'comment': 'отлично\n', 'created_at': datetime.datetime(2021, 11, 11, 15, 0, tzinfo=datetime.timezone.utc), 'day': 10}
 
 Найди отзывы, сделанные в 30 минут любого часа.
-
+Review.objects.filter(created_at__minute=30)
+QuerySet [{'id': 2, 'book_id': 3, 'rating': 4, 'comment': 'отлично\n', 'created_at': datetime.datetime(2021, 11, 11, 15, 30, tzinfo=datetime.timezone.utc), 'day': 10}
 
 Найди отзывы, созданные в момент, когда секунды были равны 0.
-
+Review.objects.filter(created_at__second=0)
+<QuerySet [{'id': 2, 'book_id': 3, 'rating': 4, 'comment': 'отлично\n', 'created_at': datetime.datetime(2021, 11, 10, 21, 0, tzinfo=datetime.timezone.utc)}, {'id': 1, 'book_id': 1, 'rating': 3, 'comment': 'не очень', 'created_at':
+ datetime.datetime(2021, 11, 10, 21, 0, tzinfo=datetime.timezone.utc)}, {'id': 3, 'book_id': 2, 'rating': 5, 'comment': None, 'created_at': datetime.datetime(2024, 11, 10, 21, 0, tzinfo=datetime.timezone.utc)}, {'id': 4, 'book_id': 1, 'rating': 4, 'comment': None, 'created_at': datetime.datetime(2021, 11, 9, 21, 15, tzinfo=datetime.timezone.utc)}]>
 
 Связанные поля
 Найди книги, написанные автором с почтой «author@example.com».
-
+Book.objects.filter(author__email="author@example.com")
+<QuerySet [{'id': 1, 'title': ' Guide tutorial', 'author_id': 1, 'published_date': datetime.datetime(2020, 11, 9, 21, 0, tzinfo=datetime.timezone.utc), 'price': Decimal('300.00'), 'discount': Decimal('10.00'), 'metadata': {'qwe': 123}}]>
 
 Найди книги авторов, чья фамилия содержит «smith» (без учёта регистра).
-
+Book.objects.filter(author__last_name__icontains="smith").values()
+<QuerySet [{'id': 2, 'title': 'PRO Advanced_1', 'author_id': 2, 'published_date': datetime.datetime(2020, 11, 9, 21, 0, tzinfo=datetime.timezone.utc), 'price': Decimal('600.00'), 'discount': Decimal('2.00'), 'metadata': {'qwe': 12
+3}}, {'id': 3, 'title': 'Python', 'author_id': 2, 'published_date': datetime.datetime(2024, 11, 9, 21, 0, tzinfo=datetime.timezone.utc), 'price': Decimal('800.00'), 'discount': Decimal('3.00'), 'metadata': {'qwe': 123}}, {'id': 1,
+ 'title': ' Guide tutorial', 'author_id': 2, 'published_date': datetime.datetime(2020, 11, 9, 21, 0, tzinfo=datetime.timezone.utc), 'price': Decimal('300.00'), 'discount': Decimal('10.00'), 'metadata': {'qwe': 123}}, {'id': 6, 'ti
+tle': 'erwFFS', 'author_id': 2, 'published_date': datetime.datetime(2020, 11, 9, 21, 0, tzinfo=datetime.timezone.utc), 'price': Decimal('4354.00'), 'discount': Decimal('65.00'), 'metadata': {'qwe': 123}}, {'id': 5, 'title': 'erewef', 'author_id': 2, 'published_date': datetime.datetime(2020, 11, 9, 21, 0, tzinfo=datetime.timezone.utc), 'price': Decimal('2333.00'), 'discount': Decimal('5.00'), 'metadata': {'qwe': 123}}]>
 
 Найди авторов, написавших более пяти книг.
-
+Author.objects.annotate(num_books=Count('books')).filter(num_books__gt=5).values()
+<QuerySet [{'id': 2, 'first_name': 'John', 'last_name': 'smitherwf', 'email': 'qwe@gmail.com', 'is_active': True, 'num_books': 6}]>
 
 JSON-поля
 Найди книги, у которых значение ключа «genre» равно «fiction».
-
+Book.objects.filter(metadata__genre="fiction")
+<QuerySet [{'id': 5, 'title': 'erewef', 'author_id': 2, 'published_date': datetime.datetime(2020, 11, 9, 21, 0, tzinfo=datetime.timezone.utc), 'price': Decimal('2333.00'), 'discount': Decimal('5.00'), 'metadata': {'genre': 'fiction'}}]>
 
 Найди книги, где значение ключа «tags» содержит слово «bestseller» (игнорируя регистр).
-
+Book.objects.filter(metadata__tags__contains="bestseller")
+<QuerySet [{'id': 6, 'title': 'erwFFS', 'author_id': 2, 'published_date': datetime.datetime(2020, 11, 9, 21, 0, tzinfo=datetime.timezone.utc), 'price': Decimal('4354.00'), 'discount': Decimal('65.00'), 'metadata': {'tags': 'bestseller'}}]>
 
 Использование выражений F и Q
 Найди книги, у которых цена равна скидке.
-
+Book.objects.filter(price=F('discount'))
+<QuerySet [{'id': 1, 'title': ' Guide tutorial', 'author_id': 2, 'published_date': datetime.datetime(2020, 11, 9, 21, 0, tzinfo=datetime.timezone.utc), 'price': Decimal('50.00'), 'discount': Decimal('50.00'), 'metadata': {'qwe': 123}}]>
 
 Найди книги, у которых цена больше скидки.
-
+Book.objects.filter(price__gt=F('discount'))
+<QuerySet [{'id': 2, 'title': 'PRO Advanced_1', 'author_id': 2, 'published_date': datetime.datetime(2020, 11, 9, 21, 0, tzinfo=datetime.timezone.utc), 'price': Decimal('600.00'), 'discount': Decimal('2.00'), 'metadata': {'qwe': 12
+3}}, {'id': 3, 'title': 'Python', 'author_id': 2, 'published_date': datetime.datetime(2024, 11, 9, 21, 0, tzinfo=datetime.timezone.utc), 'price': Decimal('800.00'), 'discount': Decimal('3.00'), 'metadata': {'qwe': 123}}, {'id': 4,
+ 'title': 'django', 'author_id': 2, 'published_date': datetime.datetime(2023, 6, 10, 21, 0, tzinfo=datetime.timezone.utc), 'price': Decimal('1200.00'), 'discount': Decimal('5.00'), 'metadata': {'qwe': 123}}, {'id': 5, 'title': 'er
+ewef', 'author_id': 2, 'published_date': datetime.datetime(2020, 11, 9, 21, 0, tzinfo=datetime.timezone.utc), 'price': Decimal('2333.00'), 'discount': Decimal('5.00'), 'metadata': {'genre': 'fiction'}}, {'id': 6, 'title': 'erwFFS', 'author_id': 2, 'published_date': datetime.datetime(2020, 11, 9, 21, 0, tzinfo=datetime.timezone.utc), 'price': Decimal('4354.00'), 'discount': Decimal('65.00'), 'metadata': {'tags': 'bestseller'}}]>
 
 Найди авторов с именем «Alice» или с фамилией, не равной «Brown».
-
+Author.objects.filter(Q(first_name="Alice") | ~Q(last_name="Brown"))
+<QuerySet [{'id': 5, 'first_name': 'Petya', 'last_name': 'Petrov', 'email': 'wergf@gmail.com', 'is_active': True}, {'id': 4, 'first_name': 'Andrey', 'last_name': 'Ivanov', 'email': 'qef@gmail.com', 'is_active': True}, {'id': 1, 'first_name': 'Alice', 'last_name': 'John', 'email': 'author@example.com', 'is_active': True}]>
 
 Задания на аннотации
 Подсчитай количество книг каждого автора.
-
+Author.objects.annotate(num_books=Count('books')).order_by('num_books')
+um_books': 0}, {'id': 1, 'first_name': 'Alice', 'last_name': 'John', 'email': 'author@example.com', 'is_active': True, 'num_books': 0}, {'id': 5, 'first_name': 'Petya', 'last_name': 'Petrov', 'email': 'wergf@gmail.com', 'is_active': True, 'num_books': 0}, {'id': 2, 'first_name': 'John', 'last_name': 'Brown', 'email': 'qwe@gmail.com', 'is_active': True, 'num_books': 6}]>
 
 Подсчитай средний рейтинг каждой книги.
-
+Book.objects.annotate(avg_rating=Avg('reviews__rating')).order_by('avg_rating')
+<QuerySet [{'id': 1, 'title': ' Guide tutorial', 'author_id': 2, 'published_date': datetime.datetime(2020, 11, 9, 21, 0, tzinfo=datetime.timezone.utc), 'price': Decimal('50.00'), 'discount': Decimal('50.00'), 'metadata': {'qwe': 1
+23}, 'avg_rating': 3.5}, {'id': 3, 'title': 'Python', 'author_id': 2, 'published_date': datetime.datetime(2024, 11, 9, 21, 0, tzinfo=datetime.timezone.utc), 'price': Decimal('800.00'), 'discount': Decimal('3.00'), 'metadata': {'qw
+e': 123}, 'avg_rating': 4.0}, {'id': 2, 'title': 'PRO Advanced_1', 'author_id': 2, 'published_date': datetime.datetime(2020, 11, 9, 21, 0, tzinfo=datetime.timezone.utc), 'price': Decimal('600.00'), 'discount': Decimal('2.00'), 'me
+tadata': {'qwe': 123}, 'avg_rating': 5.0}, {'id': 5, 'title': 'erewef', 'author_id': 2, 'published_date': datetime.datetime(2020, 11, 9, 21, 0, tzinfo=datetime.timezone.utc), 'price': Decimal('2333.00'), 'discount': Decimal('5.00'
+), 'metadata': {'genre': 'fiction'}, 'avg_rating': None}, {'id': 4, 'title': 'django', 'author_id': 2, 'published_date': datetime.datetime(2023, 6, 10, 21, 0, tzinfo=datetime.timezone.utc), 'price': Decimal('1200.00'), 'discount':
+ Decimal('5.00'), 'metadata': {'qwe': 123}, 'avg_rating': None}, {'id': 6, 'title': 'erwFFS', 'author_id': 2, 'published_date': datetime.datetime(2020, 11, 9, 21, 0, tzinfo=datetime.timezone.utc), 'price': Decimal('4354.00'), 'discount': Decimal('65.00'), 'metadata': {'tags': 'bestseller'}, 'avg_rating': None}]>
 
 Посчитай окончательную цену книги (цена минус скидка).
-
+Book.objects.annotate(final_price=ExpressionWrapper(F('price') - F('discount'),output_field=DecimalField(max_digits=6, decimal_places=2))).order_by('final_price')
+<QuerySet [{'id': 1, 'title': ' Guide tutorial', 'author_id': 2, 'published_date': datetime.datetime(2020, 11, 9, 21, 0, tzinfo=datetime.timezone.utc), 'price': Decimal('50.00'), 'discount': Decimal('50.00'), 'metadata': {'qwe': 1
+23}, 'final_price': Decimal('0.00')}, {'id': 2, 'title': 'PRO Advanced_1', 'author_id': 2, 'published_date': datetime.datetime(2020, 11, 9, 21, 0, tzinfo=datetime.timezone.utc), 'price': Decimal('600.00'), 'discount': Decimal('2.0
+0'), 'metadata': {'qwe': 123}, 'final_price': Decimal('598.00')}, {'id': 3, 'title': 'Python', 'author_id': 2, 'published_date': datetime.datetime(2024, 11, 9, 21, 0, tzinfo=datetime.timezone.utc), 'price': Decimal('800.00'), 'dis
+count': Decimal('3.00'), 'metadata': {'qwe': 123}, 'final_price': Decimal('797.00')}, {'id': 4, 'title': 'django', 'author_id': 2, 'published_date': datetime.datetime(2023, 6, 10, 21, 0, tzinfo=datetime.timezone.utc), 'price': Dec
+imal('1200.00'), 'discount': Decimal('5.00'), 'metadata': {'qwe': 123}, 'final_price': Decimal('1195.00')}, {'id': 5, 'title': 'erewef', 'author_id': 2, 'published_date': datetime.datetime(2020, 11, 9, 21, 0, tzinfo=datetime.timez
+one.utc), 'price': Decimal('2333.00'), 'discount': Decimal('5.00'), 'metadata': {'genre': 'fiction'}, 'final_price': Decimal('2328.00')}, {'id': 6, 'title': 'erwFFS', 'author_id': 2, 'published_date': datetime.datetime(2020, 11, 9, 21, 0, tzinfo=datetime.timezone.utc), 'price': Decimal('4354.00'), 'discount': Decimal('65.00'), 'metadata': {'tags': 'bestseller'}, 'final_price': Decimal('4289.00')}]>
 
 Использование select_related и prefetch_related
 Получи список книг и авторов так, чтобы выполнить всего один SQL-запрос.
-
+Book.objects.all().select_related('author')
+<QuerySet [{'id': 2, 'title': 'PRO Advanced_1', 'author_id': 2, 'published_date': datetime.datetime(2020, 11, 9, 21, 0, tzinfo=datetime.timezone.utc), 'price': Decimal('600.00'), 'discount': Decimal('2.00'), 'metadata': {'qwe': 12
+3}}, {'id': 3, 'title': 'Python', 'author_id': 2, 'published_date': datetime.datetime(2024, 11, 9, 21, 0, tzinfo=datetime.timezone.utc), 'price': Decimal('800.00'), 'discount': Decimal('3.00'), 'metadata': {'qwe': 123}}, {'id': 4,
+ 'title': 'django', 'author_id': 2, 'published_date': datetime.datetime(2023, 6, 10, 21, 0, tzinfo=datetime.timezone.utc), 'price': Decimal('1200.00'), 'discount': Decimal('5.00'), 'metadata': {'qwe': 123}}, {'id': 5, 'title': 'er
+ewef', 'author_id': 2, 'published_date': datetime.datetime(2020, 11, 9, 21, 0, tzinfo=datetime.timezone.utc), 'price': Decimal('2333.00'), 'discount': Decimal('5.00'), 'metadata': {'genre': 'fiction'}}, {'id': 6, 'title': 'erwFFS'
+, 'author_id': 2, 'published_date': datetime.datetime(2020, 11, 9, 21, 0, tzinfo=datetime.timezone.utc), 'price': Decimal('4354.00'), 'discount': Decimal('65.00'), 'metadata': {'tags': 'bestseller'}}, {'id': 1, 'title': ' Guide tutorial', 'author_id': 2, 'published_date': datetime.datetime(2020, 11, 9, 21, 0, tzinfo=datetime.timezone.utc), 'price': Decimal('50.00'), 'discount': Decimal('50.00'), 'metadata': {'qwe': 123}}]>
 
 Получи список авторов и всех их книг так, чтобы было выполнено ровно два SQL-запроса.
